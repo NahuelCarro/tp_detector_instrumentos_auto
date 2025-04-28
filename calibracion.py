@@ -4,10 +4,25 @@ import json
 
 
 def calibrar_roi(frame, nombre_elemento):
-    """Permite al usuario seleccionar una región de interés"""
+    """Permite al usuario seleccionar una región de interés y la devuelve normalizada"""
+    height, width = frame.shape[:2]
+    
     roi = cv2.selectROI(f"Selecciona ROI para {nombre_elemento}", frame, False)
     cv2.destroyWindow(f"Selecciona ROI para {nombre_elemento}")
-    return list(roi)  # Convertir tupla a lista
+    
+    if roi == (0, 0, 0, 0):  # El usuario presionó ESC o cerró la ventana
+        print("Selección de ROI cancelada.")
+        return None
+        
+    x, y, w, h = roi
+    
+    # Normalizar ROI
+    x_norm = round(x / width, 4)
+    y_norm = round(y / height, 4)
+    w_norm = round(w / width, 4)
+    h_norm = round(h / height, 4)
+    
+    return [x_norm, y_norm, w_norm, h_norm] # Devolver lista normalizada
 
 
 def calibrar_color(frame, nombre_elemento):
@@ -161,9 +176,21 @@ def calibrar_velocimetro(frame):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+    # Obtener dimensiones para normalizar
+    height, width = frame.shape[:2] 
+
+    # Normalizar centro y radio
+    if centro is not None and radio is not None:
+        centro_norm = [centro[0] / width, centro[1] / height]
+        # Normalizamos el radio respecto al ancho (podría ser alto o promedio)
+        radio_norm = radio / width 
+    else:
+        print("Error: No se pudo obtener centro o radio para normalizar")
+        return None
+
     return {
-        'centro': list(centro),
-        'radio': radio,
+        'centro': centro_norm, # Guardar normalizado
+        'radio': radio_norm,    # Guardar normalizado
         'angulo_inicio': angulo_inicio,
         'angulo_fin': angulo_fin
     }
