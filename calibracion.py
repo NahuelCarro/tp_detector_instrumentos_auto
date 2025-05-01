@@ -4,7 +4,15 @@ import json
 
 
 def calibrar_roi(frame, nombre_elemento):
-    """Permite al usuario seleccionar una región de interés y la devuelve normalizada"""
+    """Permite al usuario seleccionar una región de interés y la devuelve normalizada
+    
+    Args:
+        frame: Frame del video donde se seleccionará la ROI
+        nombre_elemento: Nombre del elemento que se está calibrando
+        
+    Returns:
+        Lista con las coordenadas normalizadas de la ROI [x, y, w, h] o None si se canceló
+    """
     height, width = frame.shape[:2]
     
     roi = cv2.selectROI(f"Selecciona ROI para {nombre_elemento}", frame, False)
@@ -26,7 +34,15 @@ def calibrar_roi(frame, nombre_elemento):
 
 
 def calibrar_color(frame, nombre_elemento):
-    """Permite al usuario seleccionar un rango de color HSV"""
+    """Permite al usuario seleccionar un rango de color HSV
+    
+    Args:
+        frame: Frame del video donde se seleccionará el color
+        nombre_elemento: Nombre del elemento que se está calibrando
+        
+    Returns:
+        Tupla con dos listas: ([H_min, S_min, V_min], [H_max, S_max, V_max])
+    """
     def nothing(x):
         pass
 
@@ -83,7 +99,21 @@ def calibrar_color(frame, nombre_elemento):
 
 
 def calibrar_velocimetro(frame):
-    """Permite al usuario calibrar el velocímetro"""
+    """Permite al usuario calibrar el velocímetro
+    
+    Args:
+        frame: Frame del video donde se calibrará el velocímetro
+        
+    Returns:
+        Diccionario con los parámetros del velocímetro:
+        {
+            'centro': [x_norm, y_norm],  # Coordenadas normalizadas del centro
+            'radio': radio_norm,         # Radio normalizado
+            'angulo_inicio': angulo_inicio,  # Ángulo de inicio en grados
+            'angulo_fin': angulo_fin     # Ángulo final en grados
+        }
+        o None si hubo un error
+    """
     if frame is None:
         print("Error: Frame inválido en calibrar_velocimetro")
         return None
@@ -197,7 +227,15 @@ def calibrar_velocimetro(frame):
 
 
 def seleccionar_frame(cap, elemento):
-    """Permite al usuario seleccionar un frame específico del video"""
+    """Permite al usuario seleccionar un frame específico del video
+    
+    Args:
+        cap: Objeto VideoCapture del video
+        elemento: Nombre del elemento que se está calibrando
+        
+    Returns:
+        Frame seleccionado o None si se canceló
+    """
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = cap.get(cv2.CAP_PROP_FPS)
     duracion = total_frames / fps
@@ -264,6 +302,17 @@ def seleccionar_frame(cap, elemento):
 
 
 def main():
+    """Función principal que ejecuta el proceso de calibración completo
+    
+    La función:
+    1. Abre el video
+    2. Para cada elemento a calibrar:
+       - Permite seleccionar un frame
+       - Calibra la ROI
+       - Calibra el rango de color
+       - Si es el velocímetro, calibra sus parámetros
+    3. Guarda la configuración en un archivo JSON
+    """
     # Abrir video
     video_path = "video_completo.MOV"
     cap = cv2.VideoCapture(video_path)
